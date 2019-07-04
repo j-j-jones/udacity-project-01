@@ -16,12 +16,10 @@ Parameters:
     Type: String
     Default: 10.0.1.0/24
    
-
   PrivateSubnet02Block:
     Description: CidrBlock for Private Subnet-02 within the VPC
     Type: String
     Default: 10.0.3.0/16
-
 
   PublicSubnet01Block:
     Description: CidrBlock for Public Subnet-01 within the VPC
@@ -73,7 +71,7 @@ Resources:
       VpcId: !Ref VPC
      
 #***************SUB BGN***************# 
-  Subnet01:
+  PrivateSubnet01:
     Type: AWS::EC2::Subnet
     Metadata:
       Comment: Private Subnet 01
@@ -92,7 +90,7 @@ Resources:
       - Key: Name
         Value: !Sub "${EnvironmentName}-PrivateSubnet01"
 
- Subnet02:
+  PrivateSubnet02:
     Type: AWS::EC2::Subnet
     Metadata:
       Comment: Private Subnet 02
@@ -109,34 +107,45 @@ Resources:
         Ref: VPC
       Tags:
       - Key: Name
-        Value: !Sub "${EnvironmentName}-PrivateSubnet02"   
+        Value: !Sub "${EnvironmentName}-PrivateSubnet02"  
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+        VpcId: !Ref VPC
+        AvailabilityZone: !Select [ 0, !GetAZ's '' ]
+        CirderBlock: !Ref PublicSubnet1CIDR
+        MapPublicIpOnLaunch: false
+        Tags: 
+            -   Key: Name
+                Value: !Sub "${EnvironmentName}-PublicSubnet01"      
 
 #***************SUB END***************# 
 #***************NAT BGN***************#
   NatGateway1EIP:
-        Type: AWS::EC2::EIP
-        DependsOn: InternetGatewayAttachment
-        Properties: 
-            Domain: VPC
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment
+    Properties: 
+        Domain: VPC
 
   NatGateway2EIP:
-        Type: AWS::EC2::EIP
-        DependsOn: InternetGatewayAttachment
-        Properties: 
-            Domain: VPC 
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment
+    Properties: 
+        Domain: VPC 
             
   NatGateway1: 
-        Type: AWS::EC2::NatGateway
-        Properties: 
-            AllocationId: !GetAtt NatGateway1EIP.AllocationId
-            SubnetId: !Ref Subnet01  
+    Type: AWS::EC2::NatGateway
+    Properties: 
+        AllocationId: !GetAtt NatGateway1EIP.AllocationId
+        SubnetId: !Ref PublicSubnet01  
             
   NatGateway2: 
-        Type: AWS::EC2::NatGateway
-        Properties: 
-            AllocationId: !GetAtt NatGateway2EIP.AllocationId
-            SubnetId: !Ref Subnet02         
-            
+    Type: AWS::EC2::NatGateway
+    Properties: 
+        AllocationId: !GetAtt NatGateway2EIP.AllocationId
+        SubnetId: !Ref PublicSubnet02         
+
  #***************NAT END***************#
   RouteTable:
     Type: AWS::EC2::RouteTable
