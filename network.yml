@@ -1,0 +1,190 @@
+Description: 'Udacity Project-01 by Jerry Jones-Udacity Student'
+
+Parameters:
+  EnvironmentName:
+    Description: An Environment name that will be prefixed to Udagram resources.
+    Type: String
+    Default: UdacityProject-01
+   
+  VpcBlock:
+    Description: The CIDR range for the Udacity Udagram Application VPC.
+    Type: String
+    Default: 10.0.0.0/24
+    
+  PrivateSubnet01Block:
+    Description: CidrBlock for Private Subnet-01 within the VPC
+    Type: String
+    Default: 10.0.1.0/24
+   
+
+  PrivateSubnet02Block:
+    Description: CidrBlock for Private Subnet-02 within the VPC
+    Type: String
+    Default: 10.0.3.0/16
+
+
+  PublicSubnet01Block:
+    Description: CidrBlock for Public Subnet-01 within the VPC
+    Type: String
+    Default: 10.0.1.0/24
+  
+  PublicSubnet02Block:
+    Description: CidrBlock for Public Subnet-02 within the VPC
+    Type: String
+    Default: 10.0.3.0/16  
+    
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
+          default: "Udagram Application Network Configuration"
+        Parameters:
+          - EnvironmentName
+          - VpcBlock
+          - PrivateSubnet01Block
+          - PrivateSubnet02Block
+          - PublicSubnet01Block
+          - PublicSubnet02Block
+          
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcBlock
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        #Value: !Sub '${AWS::StackName}-VPC'
+        Value: !Ref EnvironmentName
+
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Ref InternetGateway
+        
+  VPCGatewayAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+     
+#***************SUB BGN***************# 
+  Subnet01:
+    Type: AWS::EC2::Subnet
+    Metadata:
+      Comment: Private Subnet 01
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+        - '0'
+        - Fn::GetAZs:
+            Ref: AWS::Region
+      CidrBlock:
+        Ref: !Ref PrivateSubnet01Block
+      MapPublicIPOnLaunch: false  
+      VpcId:
+        Ref: VPC
+      Tags:
+      - Key: Name
+        Value: !Sub "${EnvironmentName}-PrivateSubnet01"
+
+ Subnet02:
+    Type: AWS::EC2::Subnet
+    Metadata:
+      Comment: Private Subnet 02
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+        - '1'
+        - Fn::GetAZs:
+            Ref: AWS::Region
+      CidrBlock:
+        Ref: !Ref PrivateSubnet02Block
+      MapPublicIPOnLaunch: false  
+      VpcId:
+        Ref: VPC
+      Tags:
+      - Key: Name
+        Value: !Sub "${EnvironmentName}-PrivateSubnet02"   
+
+#***************SUB END***************# 
+#***************NAT BGN***************#
+  NatGateway1EIP:
+        Type: AWS::EC2::EIP
+        DependsOn: InternetGatewayAttachment
+        Properties: 
+            Domain: VPC
+
+  NatGateway2EIP:
+        Type: AWS::EC2::EIP
+        DependsOn: InternetGatewayAttachment
+        Properties: 
+            Domain: VPC 
+            
+  NatGateway1: 
+        Type: AWS::EC2::NatGateway
+        Properties: 
+            AllocationId: !GetAtt NatGateway1EIP.AllocationId
+            SubnetId: !Ref Subnet01  
+            
+  NatGateway2: 
+        Type: AWS::EC2::NatGateway
+        Properties: 
+            AllocationId: !GetAtt NatGateway2EIP.AllocationId
+            SubnetId: !Ref Subnet02         
+            
+ #***************NAT END***************#
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: Public Subnets
+      - Key: Network
+        Value: Public
+
+  Route:
+    DependsOn: VPCGatewayAttachment
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  
+  Subnet01RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet01
+      RouteTableId: !Ref RouteTable
+
+  Subnet02RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet02
+      RouteTableId: !Ref RouteTable
+  
+  ControlPlaneSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Cluster communication with worker nodes
+      VpcId: !Ref VPC
+
+Outputs:
+
+  SubnetIds:
+    Description: All subnets in the VPC
+    Value: !Join [ ",", [ !Ref PrivateSubnet01Block, !Ref PrivateSubnet02Block ] ]
+
+  SecurityGroups:
+    Description: Security group for the cluster control plane communication with worker nodes
+    Value: !Join [ ",", [ !Ref ControlPlaneSecurityGroup ] ]
+
+  VpcId:
+    Description: The VPC Id
+    Value: !Ref VPC
