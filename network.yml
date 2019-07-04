@@ -109,7 +109,7 @@ Resources:
       - Key: Name
         Value: !Sub "${EnvironmentName}-PrivateSubnet02"  
 
-  PublicSubnet1:
+  PublicSubnet01:
     Type: AWS::EC2::Subnet
     Properties:
         VpcId: !Ref VPC
@@ -118,7 +118,7 @@ Resources:
         MapPublicIpOnLaunch: false
         Tags: 
             -   Key: Name
-                Value: !Sub "${EnvironmentName}-PublicSubnet01"      
+                Value: !Sub "${EnvironmentName}-PublicSubnet01"     
 
 #***************SUB END***************# 
 #***************NAT BGN***************#
@@ -146,54 +146,108 @@ Resources:
         AllocationId: !GetAtt NatGateway2EIP.AllocationId
         SubnetId: !Ref PublicSubnet02         
 
- #***************NAT END***************#
-  RouteTable:
+#***************NAT END***************#
+#***************RTE BGN***************#
+  PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
       Tags:
       - Key: Name
-        Value: Public Subnets
+        Value: Public Routes
       - Key: Network
         Value: Public
 
-  Route:
+  DefaultPublicRoute:
     DependsOn: VPCGatewayAttachment
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId: !Ref RouteTable
+      RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
-
-  
-  Subnet01RouteTableAssociation:
+      
+  PublicSubnet01RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref Subnet01
-      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref PublicSubnet01
+      RouteTableId: !Ref PublicRouteTable
 
-  Subnet02RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
+  #PublicSubnet02RouteTableAssociation:
+    #Type: AWS::EC2::SubnetRouteTableAssociation
+    #Properties:
+      #SubnetId: !Ref PubicSubnet02
+      #RouteTableId: !Ref PublicRouteTable
+
+  PrivateRouteTable01:
+    Type: AWS::EC2::RouteTable
     Properties:
-      SubnetId: !Ref Subnet02
-      RouteTableId: !Ref RouteTable
-  
-  ControlPlaneSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Cluster communication with worker nodes
       VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: Private Routes 01
+      - Key: Network
+        Value: Private  
+
+  DefaultPrivateRoute01:
+    DependsOn: VPCGatewayAttachment
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable01
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref NatGateway1 
+
+  PrivateSubnet01RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet01
+      RouteTableId: !Ref PrivateRouteTable01    
+
+  PrivateRouteTable02:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: Private Routes 02
+      - Key: Network
+        Value: Private   
+
+  DefaultPrivateRoute02:
+    DependsOn: VPCGatewayAttachment
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable02
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref NatGateway2   
+
+  PrivateSubnet02RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet02
+      RouteTableId: !Ref PrivateRouteTable02              
+
+#***************RTE END***************#
+  
+  #ControlPlaneSecurityGroup:
+    #Type: AWS::EC2::SecurityGroup
+    #Properties:
+      #GroupDescription: Cluster communication with worker nodes
+      #VpcId: !Ref VPC
 
 Outputs:
 
   SubnetIds:
     Description: All subnets in the VPC
-    Value: !Join [ ",", [ !Ref PrivateSubnet01Block, !Ref PrivateSubnet02Block ] ]
+    Value: !Join [ ",", [ !Ref PrivateSubnet01Block, !Ref PrivateSubnet02Block, !Ref PublicSubnet02Block, !Ref PublicSubnet02Block ] ]
+    Export:  
+      Name: !Sub ${EnvironmentName}-PUB-NETS
 
-  SecurityGroups:
-    Description: Security group for the cluster control plane communication with worker nodes
-    Value: !Join [ ",", [ !Ref ControlPlaneSecurityGroup ] ]
+  #SecurityGroups:
+    #Description: Security group for the cluster control plane communication with worker nodes
+    #Value: !Join [ ",", [ !Ref ControlPlaneSecurityGroup ] ]
 
   VpcId:
     Description: The VPC Id
     Value: !Ref VPC
+    Export:
+      Name: !Sub EnvironmentName}-VPCID
