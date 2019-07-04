@@ -1,4 +1,4 @@
-Description: 'Udacity Project-01 by Jerry Jones-Udacity Student'
+Description: 'Udacity Project-01 (Udagram) by Jerry Jones-Udacity Student'
 
 Parameters:
   EnvironmentName:
@@ -24,12 +24,12 @@ Parameters:
   PublicSubnet01Block:
     Description: CidrBlock for Public Subnet-01 within the VPC
     Type: String
-    Default: 10.0.1.0/24
+    Default: 10.0.0.0/24
   
   PublicSubnet02Block:
     Description: CidrBlock for Public Subnet-02 within the VPC
     Type: String
-    Default: 10.0.3.0/16  
+    Default: 10.0.0.0/24  
     
 Metadata:
   AWS::CloudFormation::Interface:
@@ -112,13 +112,14 @@ Resources:
   PublicSubnet01:
     Type: AWS::EC2::Subnet
     Properties:
-        VpcId: !Ref VPC
-        AvailabilityZone: !Select [ 0, !GetAZ's '' ]
-        CirderBlock: !Ref PublicSubnet1CIDR
-        MapPublicIpOnLaunch: false
-        Tags: 
-            -   Key: Name
-                Value: !Sub "${EnvironmentName}-PublicSubnet01"     
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZ's '' ]
+      #CidrBlock: !Ref PublicSubnet1CIDR
+      CidrBlock: PublicSubnet01Block
+      MapPublicIpOnLaunch: false
+      Tags: 
+      - Key: Name
+        Value: !Sub "${EnvironmentName}-PublicSubnet01"     
 
 #***************SUB END***************# 
 #***************NAT BGN***************#
@@ -128,11 +129,11 @@ Resources:
     Properties: 
         Domain: VPC
 
-  NatGateway2EIP:
-    Type: AWS::EC2::EIP
-    DependsOn: InternetGatewayAttachment
-    Properties: 
-        Domain: VPC 
+  #NatGateway2EIP:
+    #Type: AWS::EC2::EIP
+    #DependsOn: InternetGatewayAttachment
+    #Properties: 
+        #Domain: VPC 
             
   NatGateway1: 
     Type: AWS::EC2::NatGateway
