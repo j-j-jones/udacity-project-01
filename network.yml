@@ -9,12 +9,12 @@ Parameters:
   VpcBlock:
     Description: The CIDR range for the Udacity Udagram Application VPC.
     Type: String
-    Default: 10.0.0.0/24
+    Default: 10.0.0.0/16
     
   PrivateSubnet01Block:
     Description: CidrBlock for Private Subnet-01 within the VPC
     Type: String
-    Default: 10.0.1.0/24
+    Default: 10.0.2.0/24
    
   PrivateSubnet02Block:
     Description: CidrBlock for Private Subnet-02 within the VPC
@@ -29,7 +29,7 @@ Parameters:
   PublicSubnet02Block:
     Description: CidrBlock for Public Subnet-02 within the VPC
     Type: String
-    Default: 10.0.0.0/24  
+    Default: 10.0.1.0/24  
     
 Metadata:
   AWS::CloudFormation::Interface:
@@ -62,7 +62,7 @@ Resources:
     Properties:
       Tags:
       - Key: Name
-        Value: !Ref InternetGateway
+        Value: !Ref EnvironmentName
         
   VPCGatewayAttachment:
     Type: "AWS::EC2::VPCGatewayAttachment"
@@ -108,18 +108,18 @@ Resources:
       Tags:
       - Key: Name
         Value: !Sub "${EnvironmentName}-PrivateSubnet02"  
-
+  
   PublicSubnet01:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 0, !GetAZ's '' ]
-      #CidrBlock: !Ref PublicSubnet1CIDR
-      CidrBlock: PublicSubnet01Block
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: !Ref PublicSubnet01Block
+      #CidrBlock: PublicSubnet01Block
       MapPublicIpOnLaunch: false
       Tags: 
       - Key: Name
-        Value: !Sub "${EnvironmentName}-PublicSubnet01"     
+        Value: !Sub "${EnvironmentName}-PublicSubnet01"      
 
 #***************SUB END***************# 
 #***************NAT BGN***************#
