@@ -71,44 +71,6 @@ Resources:
       VpcId: !Ref VPC
      
 #***************SUB BGN***************# 
-  PrivateSubnet01:
-    Type: AWS::EC2::Subnet
-    Metadata:
-      Comment: Private Subnet 01
-    Properties:
-      AvailabilityZone:
-        Fn::Select:
-        - '0'
-        - Fn::GetAZs:
-            Ref: AWS::Region
-      CidrBlock:
-        Ref: !Ref PrivateSubnet01Block
-      MapPublicIPOnLaunch: false  
-      VpcId:
-        Ref: VPC
-      Tags:
-      - Key: Name
-        Value: !Sub "${EnvironmentName}-PrivateSubnet01"
-
-  PrivateSubnet02:
-    Type: AWS::EC2::Subnet
-    Metadata:
-      Comment: Private Subnet 02
-    Properties:
-      AvailabilityZone:
-        Fn::Select:
-        - '1'
-        - Fn::GetAZs:
-            Ref: AWS::Region
-      CidrBlock:
-        Ref: !Ref PrivateSubnet02Block
-      MapPublicIPOnLaunch: false  
-      VpcId:
-        Ref: VPC
-      Tags:
-      - Key: Name
-        Value: !Sub "${EnvironmentName}-PrivateSubnet02"  
-  
   PublicSubnet01:
     Type: AWS::EC2::Subnet
     Properties:
@@ -119,8 +81,30 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags: 
       - Key: Name
-        Value: !Sub "${EnvironmentName}-PublicSubnet01"      
+        Value: !Sub "${EnvironmentName}-PublicSubnet01" 
 
+  PrivateSubnet01:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      CidrBlock: !Ref PrivateSubnet01Block
+      MapPublicIpOnLaunch: false
+      Tags: 
+      - Key: Name
+        Value: !Sub "${EnvironmentName}-PrivateSubnet01" 
+
+  PrivateSubnet02:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]
+      CidrBlock: !Ref PrivateSubnet02Block
+      MapPublicIpOnLaunch: false
+      Tags: 
+      - Key: Name
+        Value: !Sub "${EnvironmentName}-PrivateSubnet02"      
+  
 #***************SUB END***************# 
 #***************NAT BGN***************#
   NatGateway1EIP:
