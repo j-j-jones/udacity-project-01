@@ -13,15 +13,15 @@ Resources:
       GroupDescription: Allow http to our Load Balancer
       GroupName: LoadBalancer
       VpcId:
-        Fn::ImportValue 
-          !Sub "${EnvironmentName-VPCID}" 
+        Fn::ImportValue: 
+          !Sub "${EnvironmentName-VPCID}"
       SecurityGroupEgress: 
-      - IPProtocol: tcp
+      - IpProtocol: tcp
         FromPort: 80
         ToPort: 80
         CidrIp: 0.0.0.0/0
       SecurityGroupIngress: 
-      - IPProtocol: tcp
+      - IpProtocol: tcp
         FromPort: 80
         ToPort: 80
         CidrIp: 0.0.0.0/0
@@ -32,22 +32,22 @@ Resources:
       GroupDescription: Allow http to our host and limit SSH
       GroupName: WebServer
       VpcId:
-        Fn::ImportValue 
+        Fn::ImportValue:
           !Sub "${EnvironmentName-VPCID}"
       SecurityGroupIngress: 
-      - IPProtocol: tcp
+      - IpProtocol: tcp
         FromPort: 8080
         ToPort: 8080
         CidrIp: 0.0.0.0/0 
-      - IPProtocol: tcp
+      - IpProtocol: tcp
         FromPort: 22
         ToPort: 22
         CidrIp: 0.0.0.0/0 
       SecurityGroupEgress: 
-      - IPProtocol: tcp
+      - IpProtocol: tcp
         FromPort: 0
         ToPort: 65535
         CidrIp: 0.0.0.0/0
       
       
-  
+   
