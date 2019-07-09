@@ -62,15 +62,24 @@ Resources:
           cd /var/www/html
           aws s3 cp s3://udacity-demo-1/udacity.zip .
           unzip -o udacity.zip
-      ImageId: ami-005bdb005fb00e791
-      IamInstanceProfile: !Ref ProfileWithRolesForOurApp
+      ImageId: ami-026c8acd92718196b 
+      #IamInstanceProfile: !Ref ProfileWithRolesForOurApp
+      #KeyName: that-one
       SecurityGroups:
-      - Ref: WebServerSecGroup
-      InstanceType: t3.small
+      - Ref: WebServerSecurityGroup
+      InstanceType: t2.medium
       BlockDeviceMappings:
       - DeviceName: "/dev/sdk"
         Ebs:
           VolumeSize: '10'      
-      
-      
-   
+
+  WebAppGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier: 
+      - Fn::ImportValue:
+          !Sub "${EnvironmentName}-PUB-NETS"
+      LaunchConfigurationName: 
+        Ref: WebAppLaunchConfig
+      MaxSize: '4'
+      MinSize: '2'  
