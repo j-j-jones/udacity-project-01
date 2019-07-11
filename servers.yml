@@ -59,11 +59,12 @@ Resources:
           apt-get install unzip awscli -y
           apt-get install apache2 -y
           systemctl start apache2.service
-          cd /var/www/html
-          aws s3 cp s3://udacity-demo-1/udacity.zip .
-          unzip -o udacity.zip
+          #cd /var/www/html
+          #aws s3 cp s3://udacity-project-01-udagram/udagram.zip 
+          wget -P ../../var/www/html http://udacity-project-01-udagram.s3-us-west-2.amazonaws.com/index.html
+          unzip -o udagram.zip
       ImageId: ami-026c8acd92718196b 
-      #IamInstanceProfile: !Ref ProfileWithRolesForOurApp
+      IamInstanceProfile: !Ref RootInstanceProfile
       #KeyName: that-one
       SecurityGroups:
       - Ref: WebServerSecurityGroup
@@ -130,7 +131,44 @@ Resources:
       - Ref: LBSecGroup
       Subnets:
       - Fn::ImportValue: !Sub "${EnvironmentName}-PUB1-SN"
-      - Fn::ImportValue: !Sub "${EnvironmentName}-PUB2-SN"          
+      - Fn::ImportValue: !Sub "${EnvironmentName}-PUB2-SN"  
+
+  RootRole: 
+    Type: "AWS::IAM::Role"
+    Properties: 
+      AssumeRolePolicyDocument: 
+        #Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Principal: 
+              Service: 
+                - "ec2.amazonaws.com"
+                - "s3.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Path: "/"
+  
+  RolePolicies: 
+    Type: "AWS::IAM::Policy"
+    Properties: 
+      PolicyName: "root"
+      PolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Action: "*"
+            Resource: "*"
+      Roles: 
+        - Ref: "RootRole"
+  
+  RootInstanceProfile: 
+    Type: "AWS::IAM::InstanceProfile"
+    Properties: 
+      Path: "/"
+      Roles: 
+        - Ref: "RootRole"            
 
 Outputs:
 
