@@ -1,0 +1,32 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Example permissions",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::724427472536:user/udacity.01"
+      },
+      "Action": [
+        "s3:GetBucketLocation",
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::udacity-project-01-udagram"
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::724427472536:user/udacity.01"
+      },
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::udacity-project-01-udagram",
+        "arn:aws:s3:::udacity-project-01-udagram/*"
+      ]
+    }
+  ]
+}
