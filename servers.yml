@@ -59,12 +59,15 @@ Resources:
           apt-get install unzip awscli -y
           apt-get install apache2 -y
           systemctl start apache2.service
-          #cd /var/www/html
-          #aws s3 cp s3://udacity-project-01-udagram/udagram.zip 
-          wget -P ../../var/www/html http://udacity-project-01-udagram.s3-us-west-2.amazonaws.com/index.html
+          cd /var/www/html
+          aws s3 cp s3://udacity-project-01-udagram/udagram.zip 
           unzip -o udagram.zip
+          wget -P ../../var/www/html http://udacity-project-01-udagram.s3-us-west-2.amazonaws.com/index.html index.html
+          #aws s3 sync s3://udacity-project-01-udagram
+     
       ImageId: ami-026c8acd92718196b 
       IamInstanceProfile: !Ref RootInstanceProfile
+      #IamInstanceProfile: arn:aws:iam::724427472536:instance-profile/UdacityProject01Server-A-RootInstanceProfile-2ORYRW5KVGDX
       #KeyName: that-one
       SecurityGroups:
       - Ref: WebServerSecurityGroup
@@ -137,14 +140,14 @@ Resources:
     Type: "AWS::IAM::Role"
     Properties: 
       AssumeRolePolicyDocument: 
-        #Version: "2012-10-17"
+        Version: "2012-10-17"
         Statement: 
           - 
             Effect: "Allow"
             Principal: 
               Service: 
-                - "ec2.amazonaws.com"
                 - "s3.amazonaws.com"
+               # - "s2.amazonaws.com"
             Action: 
               - "sts:AssumeRole"
       Path: "/"
@@ -158,7 +161,7 @@ Resources:
         Statement: 
           - 
             Effect: "Allow"
-            Action: "*"
+            Action: "s3:*"
             Resource: "*"
       Roles: 
         - Ref: "RootRole"
