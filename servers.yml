@@ -60,15 +60,17 @@ Resources:
           apt-get install apache2 -y
           systemctl start apache2.service
           cd /var/www/html
-          aws s3 cp s3://udacity-project-01-udagram/udagram.zip 
-          unzip -o udagram.zip
-          wget -P ../../var/www/html http://udacity-project-01-udagram.s3-us-west-2.amazonaws.com/index.html index.html
+          sudo aws s3 cp s3://udacity-project-01-udagram/udagram.zip . 
+          #aws s3 cp s3://udacity-project-01-udagram/index.html .
+          sudo unzip -o udagram.zip 
+          #wget -P ../../var/www/html http://udacity-project-01-udagram.s3-us-west-2.amazonaws.com/index.html
+          #wget -P http://udacity-project-01-udagram.s3-us-west-2.amazonaws.com/index.html 
           #aws s3 sync s3://udacity-project-01-udagram
      
       ImageId: ami-026c8acd92718196b 
       IamInstanceProfile: !Ref RootInstanceProfile
-      #IamInstanceProfile: arn:aws:iam::724427472536:instance-profile/UdacityProject01Server-A-RootInstanceProfile-2ORYRW5KVGDX
-      #KeyName: that-one
+      #IamInstanceProfile: arn:aws:iam::724427472536:instance-profile/UdacityProject01Server-A-RootInstanceProfile-1DRK81W0S3T8A
+      #KeyName: **DISABLED - Used only for testing purposes **
       SecurityGroups:
       - Ref: WebServerSecurityGroup
       InstanceType: t2.medium
@@ -81,7 +83,8 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       VPCZoneIdentifier: 
-      - Fn::ImportValue: !Sub "${EnvironmentName}-PRIV-NETS"
+      - Fn::ImportValue: !Sub "${EnvironmentName}-PRIV-NETS" 
+      #- Fn::ImportValue: !Sub "${EnvironmentName}-PUB-NETS" 
       LaunchConfigurationName: 
         Ref: WebAppLaunchConfig
       MaxSize: '4'
@@ -146,8 +149,8 @@ Resources:
             Effect: "Allow"
             Principal: 
               Service: 
-                - "s3.amazonaws.com"
-               # - "s2.amazonaws.com"
+              #- "s3.amazonaws.com"
+              - "ec2.amazonaws.com"
             Action: 
               - "sts:AssumeRole"
       Path: "/"
@@ -161,7 +164,7 @@ Resources:
         Statement: 
           - 
             Effect: "Allow"
-            Action: "s3:*"
+            Action: "*"
             Resource: "*"
       Roles: 
         - Ref: "RootRole"
